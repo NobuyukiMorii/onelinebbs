@@ -74,5 +74,32 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 		<input type="submit" name="submit" value="送信" />
 	</form>
 
+	<?php
+	//投稿された内容を取得するSQLを作成して結果を取得
+	$sql = "SELECT * FROM `post` ORDER BY `created_at` DESC";
+	$stmt = $dbh->prepare($sql);
+	$stmt->execute();
+	?>
+
+	<ul>
+	<?php
+	while(1) {
+		$rec = $stmt->fetch(PDO::FETCH_ASSOC);
+
+		if($rec == false){
+		  break;
+		}
+		echo "<li>" . $rec['name'] . "：" . $rec['comment'] . " " . $rec['created_at'] . "</li>";
+	}
+	?>
+	</ul>
+
+
+	<?php
+	//取得結果を開放して接続を閉じる
+	$dbh = null;
+
+	?>
+
 </body>
 </html>
