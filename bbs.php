@@ -1,13 +1,15 @@
 <?php
 
+date_default_timezone_set("Asia/Tokyo");
+
 //データベースに接続
-$link = mysql_connect('localhost' , 'root' , 'camp2015');
-if(!$link) {
-	die('データベースに接続出来ません：' . mysql_error());
-}
+$dsn = 'mysql:dbname=oneline_bbs;host=localhost';
+$user = 'root';
+$password = 'camp2015';
+$dbh = new PDO($dsn,$user,$password);
+$dbh->query('SET NAMES utf8');
 
 //データベースを選択する
-mysql_select_db('online_bbs' , $link);
 $errors = array();
 
 //POSTなら保存処理実行
@@ -36,11 +38,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if(count($errors) === 0){
 		//保存するためのSQL文を作成
 		$sql = "INSERT INTO `post` (`name` , `comment` , `created_at`) VALUES ('" 
-			. mysql_real_escape_string($name) . "' , '"
-			. mysql_real_escape_string($comment) . "' , '"
+			. $name . "' , '"
+			. $comment . "' , '"
 			. date('Y-m-d H:i:s') . "')";
 		//保存する
-		mysql_query($sql , $link);
+		  $stmt = $dbh->prepare($sql);
+		  $stmt->execute();
 	}
 
 }
