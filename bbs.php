@@ -21,15 +21,29 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 	} else {
 		$name = $_POST['name'];
 	}
+
+	//ひとことが正しく入力されているかチェック
+	$comment = null;
+	if(!isset($_POST['comment']) || !strlen($_POST['comment'])){
+		$errors['comment'] = 'ひとこと入力して下さい。';
+	} else if (strlen($_POST['comment']) > 200){
+		$errors['comment'] = 'ひとことは200文字以内で入力して下さい';
+	} else {
+		$comment = $_POST['comment'];
+	}
+
+	//エラーがなければ保存
+	if(count($errors) === 0){
+		//保存するためのSQL文を作成
+		$sql = "INSERT INTO `post` (`name` , `comment` , `created_at`) VALUES ('" 
+			. mysql_real_escape_string($name) . "' , '"
+			. mysql_real_escape_string($comment) . "' , '"
+			. date('Y-m-d H:i:s') . "')";
+		//保存する
+		mysql_query($sql , $link);
+	}
+
 }
-
-//
-
-
-
-
-
-
 
 ?>
 <!DOCTYPE HTML PUBLIC"-//W3C//DTD HTML 4.01 Transitional//EN">
