@@ -42,8 +42,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 			. $comment . "' , '"
 			. date('Y-m-d H:i:s') . "')";
 		//保存する
-		  $stmt = $dbh->prepare($sql);
-		  $stmt->execute();
+		$stmt = $dbh->prepare($sql);
+		$stmt->execute();
 	}
 
 }
@@ -59,6 +59,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 	<h1>ひとこと掲示板</h1>
 
 	<form action="bbs.php" method="post">
+		<?php if(count($errors)): ?>
+		<ul class="error_list">
+			<?php foreach($errors as $error): ?>
+			<li>
+				<?php echo htmlspecialchars($error , ENT_QUOTES , 'UTF-8') ?>
+			</li> 
+			<?php endforeach; ?>
+		</ul>
+		<?php endif; ?>	
+
 		名前：<input type="text" name="name" /><br>
 		ひとこと：<input type="text" name="comment" size="60" /><br />
 		<input type="submit" name="submit" value="送信" />
