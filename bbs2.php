@@ -1,18 +1,21 @@
 <?php
-
+//デート関数の時間設定
 date_default_timezone_set("Asia/Tokyo");
-
 //データベースに接続
-$dsn = 'mysql:dbname=oneline_bbs;host=localhost';
-$user = 'root';
-$password = 'camp2015';
-$dbh = new PDO($dsn,$user,$password);
-$dbh->query('SET NAMES utf8');
+$link = mysql_connect('localhost' , 'root' , 'camp2015');
+//文字コードのセット
+mysql_query('SET NAMES utf8' , $link);
 
-//データベースを選択する
+if(!$link){
+	die('データベースに接続出来ません：' . mysql_error());
+}
+
+//データベースに接続出来ません。
+mysql_select_db('oneline_bbs' , $link);
+
 $errors = array();
 
-//POSTなら保存処理実行
+//POSTなら保存実行処理
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
 	//名前が正しく入力されているかチェック
 	$name = null;
@@ -38,17 +41,23 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if(count($errors) === 0){
 		//保存するためのSQL文を作成
 		$sql = "INSERT INTO `post` (`name` , `comment` , `created_at`) VALUES ('" 
-			. $name . "' , '"
-			. $comment . "' , '"
+			. mysql_real_escape_string($name) . "' , '"
+			. mysql_real_escape_string($comment) . "' , '"
+//			. date_time_set('Y-m-d H:i:s' , $hour , $minute , $second) . "')";
 			. date('Y-m-d H:i:s') . "')";
 		//保存する
-		$stmt = $dbh->prepare($sql);
-		$stmt->execute();
+		mysql_query($sql , $link);
+
+		mysql_close($link);
+		header('Location:http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 	}
 
 }
 
+
+
 ?>
+
 <!DOCTYPE HTML PUBLIC"-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -58,7 +67,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 	<h1>ひとこと掲示板</h1>
 
-	<form action="bbs.php" method="post">
+	<form action="bbs2.php" method="post">
 		<?php if(count($errors)): ?>
 		<ul class="error_list">
 			<?php foreach($errors as $error): ?>
@@ -75,36 +84,29 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 	</form>
 
 	<?php
-	if(count($errors) === 0){
 		//投稿された内容を取得するSQLを作成して結果を取得
 		$sql = "SELECT * FROM `post` ORDER BY `created_at` DESC";
-		$stmt = $dbh->prepare($sql);
-		$stmt->execute();
-
-		//header('location:http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-
-	}
+		$result = mysql_query($sql , $link);
 	?>
 
+	<?php if($result !== false && mysql_num_rows($result)): ?>
 	<ul>
-	<?php
-	while(1) {
-		$rec = $stmt->fetch(PDO::FETCH_ASSOC);
-
-		if($rec == false){
-		  break;
-		}
-		echo "<li>" . $rec['name'] . "：" . $rec['comment'] . " " . $rec['created_at'] . "</li>";
-	}
-	?>
+		<?php while ($post = mysql_fetch_assoc($result)) :?>
+		<li>
+			<?php echo htmlspecialchars($post['name'] , ENT_QUOTES , 'UTF-8'); ?>
+			<?php echo htmlspecialchars($post['comment'] , ENT_QUOTES , 'UTF-8'); ?>
+			- <?php echo htmlspecialchars($post['created_at'] , ENT_QUOTES , 'UTF-8'); ?>
+		</li>
+		<?php endwhile; ?>
 	</ul>
-
+	<?php endif; ?>
 
 	<?php
 	//取得結果を開放して接続を閉じる
-	$dbh = null;
-
+	mysql_free_result($result);
+	mysql_close($link);
 	?>
+
 
 </body>
 </html>
